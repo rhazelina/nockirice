@@ -20,9 +20,6 @@ cliphist
 # display manager
 sddm
 
-# theming engine
-matugen
-
 # font
 ttf-meslo-nerd
 
