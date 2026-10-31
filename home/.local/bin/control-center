@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Control Center" "$1" "${2:-}" || true
+    fi
+}
+
+choice="$(
+    printf '%s\n' \
+        'Volume +5%' \
+        'Volume -5%' \
+        'Volume mute' \
+        'Mic mute' \
+        'Brightness +5%' \
+        'Brightness -5%' \
+        'Wi-Fi on/off' \
+        'Bluetooth on/off' \
+        'Audio settings' \
+        'Screenshot area' \
+        'Choose wallpaper' \
+        'Next wallpaper' \
+        'Regenerate theme' \
+        'Reload bar' \
+        'Reload niri' \
+        'Lock' \
+        'Power menu' \
+        | fuzzel --dmenu --prompt 'Control Center  ' --lines 17 --width 32
+)" || exit 0
+
+case "$choice" in
+    'Volume +5%')
+        swayosd-client --output-volume +5
+        ;;
+    'Volume -5%')
+        swayosd-client --output-volume -5
+        ;;
+    'Volume mute')
+        swayosd-client --output-volume mute-toggle
+        ;;
+    'Mic mute')
+        swayosd-client --input-volume mute-toggle
+        ;;
+    'Brightness +5%')
+        swayosd-client --brightness +5
+        ;;
+    'Brightness -5%')
+        swayosd-client --brightness -5
+        ;;
+    'Wi-Fi on/off')
+        if nmcli radio wifi | grep -q '^enabled'; then
+            nmcli radio wifi off
+            notify 'Wi-Fi dimatikan'
+        else
+            nmcli radio wifi on
+            notify 'Wi-Fi dinyalakan'
+        fi
+        ;;
+    'Bluetooth on/off')
+        if bluetoothctl show 2>/dev/null | grep -q 'Powered: yes'; then
+            bluetoothctl power off
+            notify 'Bluetooth dimatikan'
+        else
+            bluetoothctl power on
+            notify 'Bluetooth dinyalakan'
+        fi
+        ;;
+    'Audio settings')
+        pavucontrol
+        ;;
+    'Screenshot area')
+        geometry="$(slurp)" || exit 0
+        grim -g "$geometry" - | wl-copy
+        notify 'Screenshot disalin ke clipboard'
+        ;;
+    'Choose wallpaper')
+        wallpaper-picker
+        ;;
+    'Next wallpaper')
+        wallpaper-rotate
+        ;;
+    'Regenerate theme')
+        wallpaper="$(wallpaper-rotate --current 2>/dev/null || true)"
+        if [ -n "$wallpaper" ] && [ -f "$wallpaper" ]; then
+            matugen image "$wallpaper" --prefer value --quiet
+            notify 'Tema diperbarui dari wallpaper'
+        else
+            notify 'Wallpaper aktif tidak ditemukan'
+        fi
+        ;;
+    'Reload bar')
+        noctalia msg config-reload
+        notify 'Noctalia dimuat ulang'
+        ;;
+    'Reload niri')
+        niri msg action load-config-file
+        notify 'Konfigurasi niri dimuat ulang'
+        ;;
+    'Lock')
+        swaylock
+        ;;
+    'Power menu')
+        wlogout
+        ;;
+esac

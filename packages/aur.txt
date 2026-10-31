@@ -1,0 +1,11 @@
+aionui-bin
+android-studio
+antigravity
+antigravity-cli
+antigravity-ide
+anydesk-bin
+flutter-bin
+google-chrome
+spotify
+unionfs-fuse
+vesktop

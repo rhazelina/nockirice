@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# sddm-theme-wallpaper-hook — dipanggil wallpaper-rotate setelah ganti wallpaper.
+# Hanya perlu satu kali sudo untuk membuat direktori tujuan.
+set -euo pipefail
+/home/fichela/.local/bin/sddm-theme-sync

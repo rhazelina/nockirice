@@ -1,0 +1,59 @@
+{
+	"tabBar": {
+		"value": true
+	},
+	"tabBarPosition": {
+		"value": "bottom"
+	},
+	"trayIcon": {
+		"value": true
+	},
+	"registerProtocol": {
+		"value": true
+	},
+	"tabClosePrompt": {
+		"value": true
+	},
+	"closeToTray": {
+		"value": true
+	},
+	"exitPrompt": {
+		"value": false
+	},
+	"preventEnter": {
+		"value": false
+	},
+	"notificationBadge": {
+		"value": true
+	},
+	"launchMinimized": {
+		"value": false
+	},
+	"autoLaunch": {
+		"value": false
+	},
+	"autoHideMenuBar": {
+		"value": false
+	},
+	"showSaveDialog": {
+		"value": true
+	},
+	"defaultDownloadDir": {
+		"value": ""
+	},
+	"customTitlebar": {
+		"value": false
+	},
+	"systemScrollbars": {
+		"value": false
+	},
+	"rememberWindowSize": {
+		"value": false
+	},
+	"rememberWindowPosition": {
+		"value": false
+	},
+	"language": {
+		"value": "en"
+	}
+}

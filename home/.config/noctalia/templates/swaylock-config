@@ -1,0 +1,46 @@
+# Swaylock — digenerate oleh Noctalia dari palette wallpaper aktif.
+# Jangan diedit manual: ubah di ~/.config/noctalia/templates/swaylock-config
+# lalu jalankan `noctalia msg templates-apply`.
+
+image=/home/fichela/.local/share/wallpapers/lock-current.jpg
+scaling=fill
+color={{ colors.surface.default.hex }}
+
+# Indicator body
+inside-color={{ colors.on_surface.default.hex }}10
+inside-clear-color={{ colors.on_surface.default.hex }}10
+inside-ver-color={{ colors.primary.default.hex }}26
+inside-wrong-color={{ colors.error.default.hex }}26
+inside-caps-lock-color={{ colors.tertiary.default.hex }}26
+
+# Ring
+ring-color={{ colors.primary.default.hex }}
+ring-clear-color={{ colors.primary.default.hex }}
+ring-ver-color={{ colors.primary.default.hex }}
+ring-wrong-color={{ colors.error.default.hex }}
+ring-caps-lock-color={{ colors.tertiary.default.hex }}
+
+# Thin separator line
+line-color=#00000000
+line-clear-color=#00000000
+line-ver-color=#00000000
+line-wrong-color=#00000000
+line-caps-lock-color=#00000000
+separator-color=#00000000
+
+# Text
+text-color={{ colors.on_surface.default.hex }}
+text-clear-color={{ colors.on_surface.default.hex }}
+text-ver-color={{ colors.on_surface.default.hex }}
+text-wrong-color={{ colors.error.default.hex }}
+text-caps-lock-color={{ colors.tertiary.default.hex }}
+
+# Layout
+font=Noto Sans
+font-size=15
+indicator-radius=82
+indicator-thickness=6
+indicator-idle-visible=yes
+show-failed-attempts=yes
+fade-in=0.2
+hide-keyboard-layout=no

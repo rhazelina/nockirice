@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# mem-mode — satu saklar untuk "Hemat" vs "Penuh" di mesin 8 GB.
+#
+#   mem-mode hemat   → tutup app berat yang idle (Vesktop, opencode serve).
+#   mem-mode penuh   → kembalikan desktop widget Noctalia.
+#   mem-mode status  → tampilkan pemakaian RAM + app terberat.
+#
+# App yang ditutup hanya yang memang bisa hidup lagi tanpa kehilangan kerja:
+# Vesktop (Discord) dan opencode serve. Chromium / IDE tidak disentuh.
+
+set -euo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}"
+MODE_FILE="$STATE_DIR/mem-mode"
+
+notify() {
+    command -v notify-send >/dev/null 2>&1 && notify-send -a "Memory" "$1" "${2:-}" || true
+}
+
+top_apps() {
+    ps -eo rss=,comm=,args= | awk '$1 > 30000' | sort -rn | head -6 | \
+        awk '{printf "  %5.0f MB  %s\n", $1/1024, $2}'
+}
+
+case "${1:-status}" in
+    hemat)
+        echo "→ Mode hemat"
+
+        if pgrep -x vesktop >/dev/null 2>&1; then
+            echo "  · menutup Vesktop"
+            pkill -x vesktop 2>/dev/null || true
+        fi
+
+        if pgrep -f 'opencode.exe serve' >/dev/null 2>&1; then
+            echo "  · menutup opencode serve"
+            pkill -f 'opencode.exe serve' 2>/dev/null || true
+        fi
+
+        if command -v noctalia >/dev/null 2>&1; then
+            noctalia msg desktop-widgets-hide >/dev/null 2>&1 || true
+        fi
+
+        printf 'hemat\n' > "$MODE_FILE"
+        echo "RAM sekarang:"; free -m | awk 'NR<=2'
+        notify "Mode hemat" "Vesktop & opencode serve ditutup"
+        ;;
+
+    penuh)
+        echo "→ Mode penuh"
+        if command -v noctalia >/dev/null 2>&1; then
+            noctalia msg desktop-widgets-show >/dev/null 2>&1 || true
+        fi
+        printf 'penuh\n' > "$MODE_FILE"
+        notify "Mode penuh" "Desktop widget kembali aktif"
+        ;;
+
+    status|*)
+        mode="$(cat "$MODE_FILE" 2>/dev/null || echo 'belum diset')"
+        echo "Mode        : $mode"
+        echo "Swappiness  : $(cat /proc/sys/vm/swappiness)"
+        echo "zram        : $(zramctl --noheadings --output DATA,COMPR,TOTAL 2>/dev/null | tr -s ' ' || echo '-')"
+        echo
+        free -m | awk 'NR==1{print} NR==2{printf "RAM  %6d MB total, %6d MB used, %6d MB available\n", $2,$3,$7}'
+        echo
+        echo "App terberat (>30 MB):"
+        top_apps
+        ;;
+esac

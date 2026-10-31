@@ -1,0 +1,14 @@
+// ────────────── Startup Applications ──────────────
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
+
+    spawn-at-startup "noctalia" "-d"
+    spawn-at-startup "mako"
+    spawn-sh-at-startup "systemctl --user import-environment WAYLAND_DISPLAY; systemctl --user start swaybg.service"
+    spawn-at-startup "swayosd-server"
+    spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+    spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
+
+// swayidle: screensaver noctoprevi setelah 10 menit idle, auto-lock setelah
+// 15 menit. Tanpa -w agar timer lock tidak tertahan proses screensaver.
+// Config: ~/.config/swayidle/config (path default swayidle).
+    spawn-at-startup "swayidle"

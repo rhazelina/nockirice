@@ -1,0 +1,25 @@
+    layout {
+        gaps 16 // Gap between windows
+        center-focused-column "never" // Don’t auto-center focused column
+
+        background-color "transparent" // transparan agar wallpaper dari swaybg terlihat
+
+        preset-column-widths {
+            proportion 0.33333
+            proportion 0.5
+            proportion 0.66667
+        }
+
+        // Bayangan halus: bikin jendela "mengambang" di atas wallpaper tanpa
+        // biaya GPU besar. Radius 16 di rules.kdl bikin bayangan ikut membulat.
+        shadow {
+            on
+            softness 24
+            spread 2
+            offset x=0 y=6
+            color "#00000066"
+            inactive-color "#00000033"
+        }
+
+        struts {}
+    }

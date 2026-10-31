@@ -1,0 +1,4 @@
+# generated / machine-specific
+home/.config/fish/fish_variables
+home/.config/**/bookmarks
+**/*.bak.*

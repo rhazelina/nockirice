@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+state_file="$state_dir/wallpaper.current"
+fallback="$HOME/Pictures/Wallpaper/10.jpeg"
+
+wallpaper=""
+if [ -r "$state_file" ]; then
+    IFS= read -r wallpaper < "$state_file" || true
+fi
+
+if [ -z "$wallpaper" ] || [ ! -f "$wallpaper" ]; then
+    wallpaper="$fallback"
+fi
+
+exec /usr/bin/swaybg -i "$wallpaper" -m fill

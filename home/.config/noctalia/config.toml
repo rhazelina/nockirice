@@ -1,0 +1,464 @@
+# Noctalia v5 — bar + desktop widgets only.
+# Notifications, OSD, polkit, wallpaper, lock, idle and dock stay with the
+# existing stack (mako, swayosd, polkit-gnome, swaybg, swaylock, swayidle).
+
+[shell]
+polkit_agent            = false
+setup_wizard_enabled    = false
+settings_show_advanced  = true
+clipboard_enabled       = true
+time_format             = "{:%H:%M}"
+date_format             = "%A, %d %B %Y"
+
+[shell.session]
+
+[[shell.session.actions]]
+action = "lock"
+command = "swaylock"
+
+[[shell.session.actions]]
+action = "logout"
+
+[[shell.session.actions]]
+action = "lock_and_suspend"
+command = "swaylock -f && sleep 0.5 && systemctl suspend"
+
+[[shell.session.actions]]
+action = "reboot"
+countdown_seconds = 5
+
+[[shell.session.actions]]
+action = "shutdown"
+countdown_seconds = 5
+
+[theme]
+mode            = "dark"
+shell_mode      = "dark"
+source          = "custom"
+custom_palette  = "Monet"
+pure_black_dark = false
+
+[wallpaper]
+enabled = false
+
+[lockscreen]
+enabled = false
+
+[notification]
+enable_daemon = false
+
+[osd]
+enabled = false
+
+[osd.kinds]
+volume            = false
+volume_output     = false
+volume_input      = false
+brightness        = false
+wifi              = false
+bluetooth         = false
+power_profile     = false
+caffeine          = false
+nightlight        = false
+dnd               = false
+lock_keys         = false
+keyboard_layout   = false
+media             = false
+privacy           = false
+keyboard_backlight = false
+
+[idle.behavior.lock]
+enabled = false
+timeout = 0
+
+[idle.behavior.screen-off]
+enabled = false
+timeout = 0
+
+[idle.behavior.suspend]
+enabled = false
+timeout = 0
+
+[weather]
+enabled = true
+
+[location]
+auto_locate = true
+
+[calendar]
+enabled = true
+
+# ────────────────────────────── Bar ──────────────────────────────
+
+[bar]
+order = ["main"]
+
+[bar.main]
+position              = "top"
+enabled               = true
+auto_hide             = false
+reserve_space         = true
+layer                 = "top"
+thickness             = 46
+background_opacity    = 0.55
+border_width          = 0.0
+shadow                = false
+radius                = 16
+margin_ends           = 56
+margin_edge           = 12
+margin_opposite_edge  = 0
+padding               = 8
+widget_spacing        = 8
+capsule               = false
+capsule_fill          = "surface_variant"
+capsule_thickness     = 0.76
+capsule_radius        = 10
+capsule_opacity       = 0.78
+hover_highlight       = false
+scale                 = 1.0
+font_scale            = 1.0
+font_weight           = 500
+start                 = ["group:ws", "launcher-btn", "wallpaper-btn", "session-btn"]
+center                = ["group:mid"]
+end                   = ["group:status", "tray", "nightlight", "control-center"]
+
+[[bar.main.capsule_group]]
+id              = "ws"
+members         = ["workspaces"]
+enabled         = true
+fill            = "surface_variant"
+padding         = 8
+radius          = 12
+opacity         = 0.78
+widget_spacing  = 6
+
+[[bar.main.capsule_group]]
+id              = "mid"
+members         = ["media", "clock", "audio_visualizer"]
+enabled         = true
+fill            = "surface_variant"
+padding         = 10
+radius          = 14
+opacity         = 0.78
+widget_spacing  = 8
+
+[[bar.main.capsule_group]]
+id              = "status"
+members         = ["notifications", "clipboard", "network", "volume", "brightness"]
+enabled         = true
+fill            = "surface_variant"
+padding         = 8
+radius          = 14
+opacity         = 0.78
+widget_spacing  = 8
+
+[widget.workspaces]
+style                   = "regular"
+show_labels             = false
+show_icons              = false
+hide_when_empty         = false
+pill_scale              = 1.0
+active_pill_size        = 2.6
+inactive_pill_size      = 1.0
+focused_color           = "primary"
+occupied_color          = "secondary"
+empty_color             = "surface_variant"
+change_color_on_hover   = false
+focused_output_only     = true
+
+[widget.launcher-btn]
+type         = "custom_button"
+glyph        = "apps"
+color        = "tertiary"
+tooltip      = "Launcher"
+capsule      = true
+capsule_fill = "surface_variant"
+capsule_radius = 17
+
+[widget.launcher-btn.actions]
+left = "exec fuzzel"
+
+[widget.session-btn]
+type         = "custom_button"
+glyph        = "power"
+color        = "on_surface_variant"
+tooltip      = "Session"
+capsule      = true
+capsule_fill = "surface_variant"
+capsule_radius = 17
+
+[widget.session-btn.actions]
+left = "exec wlogout"
+
+[widget.wallpaper-btn]
+type         = "custom_button"
+glyph        = "wallpaper"
+color        = "primary"
+tooltip      = "Wallpaper"
+capsule      = true
+capsule_fill = "surface_variant"
+capsule_radius = 17
+
+[widget.wallpaper-btn.actions]
+left = "exec /home/fichela/.local/bin/wallpaper-picker"
+
+[widget.media]
+type            = "media"
+album_art_only  = true
+art_size        = 22
+hide_when_no_media = true
+
+[widget.clock]
+type   = "clock"
+format = "{:%H:%M}"
+
+[widget.audio_visualizer]
+type   = "audio_visualizer"
+color  = "primary"
+
+[widget.notifications]
+type = "notifications"
+
+[widget.clipboard]
+type = "clipboard"
+
+[widget.network]
+type       = "network"
+show_label = false
+
+[widget.volume]
+type       = "volume"
+show_label = false
+
+[widget.brightness]
+type       = "brightness"
+show_label = false
+
+[widget.nightlight]
+type         = "nightlight"
+capsule      = true
+capsule_fill = "surface_variant"
+capsule_radius = 17
+
+[widget.control-center]
+type         = "control-center"
+glyph        = "noctalia"
+capsule      = true
+capsule_fill = "surface_variant"
+capsule_radius = 17
+capsule_border = "primary"
+
+# System tray (StatusNotifierItem). Vesktop & Altus hanya benar-benar berhenti
+# lewat menu tray-nya, jadi tray ini yang jadi jalan keluar resminya.
+[widget.tray]
+type                = "tray"
+drawer              = true
+drawer_columns      = 3
+drawer_item_size    = 20
+hide_passive        = true
+match_adjacent_spacing = true
+pinned              = []
+
+# ─────────────────────── Desktop widgets ────────────────────────
+
+[desktop_widgets]
+enabled       = true
+schema_version = 2
+widget_order  = ["clock", "media", "media-progress", "weather", "tasks", "calendar", "system", "sysinfo", "battery", "volume"]
+
+[desktop_widgets.grid]
+visible        = false
+cell_size      = 16
+major_interval = 4
+
+[desktop_widgets.widget.clock]
+type        = "local/clock:clock"
+output      = "HDMI-A-1"
+cx          = 360.0
+cy          = 273.0
+box_width   = 578.0
+box_height  = 263.0
+rotation    = 0.0
+
+[desktop_widgets.widget.clock.settings]
+time_format = "{:%H:%M}"
+date_format = "{:%A, %d %B %Y}"
+background  = false
+
+[desktop_widgets.widget.media]
+type        = "media_player"
+output      = "HDMI-A-1"
+cx          = 360.0
+cy          = 578.0
+box_width   = 578.0
+box_height  = 267.0
+rotation    = 0.0
+
+[desktop_widgets.widget.media.settings]
+layout              = "horizontal"
+color               = "on_surface"
+shadow              = true
+hide_when_no_media  = false
+background          = true
+background_color    = "surface"
+background_opacity  = 0.72
+background_radius   = 18.0
+background_padding  = 22.0
+album_art_background = true
+album_art_blur = 24
+
+[desktop_widgets.widget.media-progress]
+type        = "local/media-progress:progress"
+output      = "HDMI-A-1"
+cx          = 360.0
+cy          = 695.0
+box_width   = 578.0
+box_height  = 32.0
+rotation    = 0.0
+
+[desktop_widgets.widget.media-progress.settings]
+show_times  = true
+bar_height  = 4
+fill_color  = "primary"
+background  = false
+
+[desktop_widgets.widget.weather]
+type        = "weather"
+output      = "HDMI-A-1"
+cx          = 965.0
+cy          = 273.0
+box_width   = 578.0
+box_height  = 263.0
+rotation    = 0.0
+
+[desktop_widgets.widget.weather.settings]
+color               = "on_surface"
+shadow              = true
+show_forecast       = true
+forecast_days       = 3
+background          = true
+background_color    = "surface"
+background_opacity  = 0.72
+background_radius   = 18.0
+background_padding  = 22.0
+
+[desktop_widgets.widget.tasks]
+type        = "local/tasks:tasks"
+output      = "HDMI-A-1"
+cx          = 965.0
+cy          = 578.0
+box_width   = 578.0
+box_height  = 267.0
+rotation    = 0.0
+
+[desktop_widgets.widget.tasks.settings]
+folder     = "~/Documents/Todo"
+title      = "Tasks"
+panel_id   = "nightwatch75/todo:panel"
+background = false
+
+[desktop_widgets.widget.calendar]
+type        = "calendar"
+output      = "HDMI-A-1"
+cx          = 1570.0
+cy          = 426.0
+box_width   = 578.0
+box_height  = 569.0
+rotation    = 0.0
+
+[desktop_widgets.widget.calendar.settings]
+show_events         = false
+show_week_numbers   = false
+font_family         = ""
+background          = true
+background_color    = "surface"
+background_opacity  = 0.72
+background_radius   = 18.0
+background_padding  = 22.0
+
+[desktop_widgets.widget.system]
+type        = "sysmon"
+output      = "HDMI-A-1"
+cx          = 965.0
+cy          = 884.0
+box_width   = 578.0
+box_height  = 258.0
+rotation    = 0.0
+
+[desktop_widgets.widget.system.settings]
+display             = "graph"
+stat                = "cpu_usage"
+stat2               = "cpu_temp"
+color               = "primary"
+color2              = "secondary"
+show_label          = true
+shadow              = true
+background          = true
+background_color    = "surface"
+background_opacity  = 0.72
+background_radius   = 18.0
+background_padding  = 22.0
+
+[desktop_widgets.widget.sysinfo]
+type        = "local/sysinfo:sysinfo"
+output      = "HDMI-A-1"
+cx          = 965.0
+cy          = 792.0
+box_width   = 534.0
+box_height  = 30.0
+rotation    = 0.0
+
+[desktop_widgets.widget.sysinfo.settings]
+background = true
+background_color = "#0a1416"
+background_opacity = 0.72
+background_radius = 8.0
+background_padding = 0.0
+
+[desktop_widgets.widget.volume]
+type        = "volume"
+output      = "HDMI-A-1"
+cx          = 1703.0
+cy          = 884.0
+box_width   = 311.0
+box_height  = 258.0
+rotation    = 0.0
+
+[desktop_widgets.widget.volume.settings]
+device             = "output"
+fill_color         = "primary"
+track_color        = "on_surface_variant"
+show_device        = false
+scroll_step        = 5
+shadow             = true
+background         = true
+background_color   = "surface"
+background_opacity = 0.72
+background_radius  = 18.0
+background_padding = 22.0
+
+[desktop_widgets.widget.battery]
+type        = "yocraft/battery-widget:widget"
+output      = "HDMI-A-1"
+cx          = 1405.0
+cy          = 884.0
+box_width   = 249.0
+box_height  = 258.0
+rotation    = 0.0
+
+[desktop_widgets.widget.battery.settings]
+layout          = "vertical"
+show_glyph      = true
+show_label      = true
+label_content   = "percent"
+hide_plugged    = false
+hide_full       = false
+color           = "on_surface"
+warning_color   = "error"
+charging_color  = "primary"
+battery         = "auto"
+background      = true
+background_color   = "surface"
+background_opacity = 0.72
+background_radius  = 18.0
+background_padding = 22.0

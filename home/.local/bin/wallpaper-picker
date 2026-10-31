@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+wallpaper_dir="${WALLPAPER_DIR:-$HOME/Pictures/Wallpaper}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+state_file="$state_dir/wallpaper.current"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Wallpaper" "$1" "${2:-}" || true
+    fi
+}
+
+mapfile -t wallpapers < <(
+    find "$wallpaper_dir" -maxdepth 1 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        -print | sort
+)
+
+if [ "${#wallpapers[@]}" -eq 0 ]; then
+    notify "Tidak ada wallpaper" "Folder: $wallpaper_dir"
+    exit 1
+fi
+
+declare -A paths=()
+names=()
+for file in "${wallpapers[@]}"; do
+    name="$(basename "$file")"
+    paths["$name"]="$file"
+    names+=("$name")
+done
+
+if ! command -v fuzzel >/dev/null 2>&1; then
+    exec /home/fichela/.local/bin/wallpaper-rotate --next
+fi
+
+choice="$(
+    printf '%s\n' "${names[@]}" \
+        | fuzzel --dmenu --prompt 'Wallpaper  ' --lines 18 --width 48
+)" || exit 0
+
+[ -n "$choice" ] || exit 0
+
+selected="${paths[$choice]:-}"
+if [ -z "$selected" ] || [ ! -f "$selected" ]; then
+    notify "Wallpaper tidak ditemukan" "$choice"
+    exit 1
+fi
+
+if ! /home/fichela/.local/bin/wallpaper-rotate --set "$selected"; then
+    notify "Gagal mengganti wallpaper" "$choice"
+    exit 1
+fi

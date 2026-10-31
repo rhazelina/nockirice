@@ -1,0 +1,38 @@
+// ────────────────────────── Window rules ──────────────────────────
+// Warna border/focus-ring ada di noctalia.kdl (di-generate dari palette
+// wallpaper aktif). Di sini hanya bentuk, radius, dan transparansi.
+
+// Radius seragam untuk semua jendela. Dulu ada rule kedua yang menimpanya
+// jadi 0 khusus jendela aktif — itu yang bikin sudut jendela fokus jadi kotak.
+window-rule {
+    geometry-corner-radius 16
+    clip-to-geometry true
+}
+
+// Transparansi hanya untuk app yang isinya teks/kode. Jendela lain tetap
+// opak supaya teks tajam dan GPU tidak kerja ekstra.
+window-rule {
+    match app-id=r#"^(Alacritty|foot|kitty|com.mitchellh.ghostty|org.wezfurlong.wezterm)$"#
+    opacity 0.94
+}
+
+// if you use steam you will probably like these
+window-rule {
+    match app-id="steam"
+    exclude title=r#"^[Ss]team$"#
+    open-floating true
+}
+
+window-rule {
+    match app-id="steam" title=r#"^notificationtoasts_\d+_desktop$"#
+    default-floating-position x=10 y=10 relative-to="bottom-right"
+    open-focused false
+}
+
+// Blur the wallpaper behind Noctalia's bar and desktop widgets.
+layer-rule {
+    match namespace="^noctalia-"
+    background-effect {
+        blur true
+    }
+}

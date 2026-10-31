@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+VERSION="1.0.0"
+
+LOG_DIR="$HOME/.local/share/fixwall/logs"
+mkdir -p "$LOG_DIR"
+
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+LOGFILE="$LOG_DIR/fixwall-$TIMESTAMP.log"
+
+print_header() {
+cat <<EOF
+
+═══════════════════════════════════════════════
+        Noctalia QuickShell Fixer
+═══════════════════════════════════════════════
+Version : $VERSION
+
+EOF
+}
+
+require_qs() {
+    if ! command -v qs >/dev/null 2>&1; then
+        echo "✖ QuickShell (qs) was not found. Please install QuickShell before using FixWall."
+        exit 1
+    fi
+}
+
+save_logs() {
+
+{
+echo "Just a moment, gathering logs and system information..."
+echo
+echo 
+echo "===== FixWall Report ====="
+echo "Generated : $(date)"
+echo
+
+echo "===== System ====="
+uname -a
+echo
+
+echo "Kernel : $(uname -r)"
+
+echo
+echo "Desktop : ${XDG_CURRENT_DESKTOP:-Unknown}"
+echo "Session : ${XDG_SESSION_TYPE:-Unknown}"
+
+echo
+echo "===== Versions ====="
+
+echo "QuickShell:"
+qs --version 2>/dev/null || echo "Unknown"
+
+echo
+echo "Niri:"
+niri --version 2>/dev/null || echo "Unknown"
+
+echo
+echo "===== Running Process ====="
+
+pgrep -a qs || echo "qs not running"
+
+echo
+
+if command -v journalctl >/dev/null 2>&1; then
+    echo "===== Recent Logs ====="
+    journalctl --user --since "5 minutes ago" --no-pager \
+        | grep -Ei "qs|quickshell|noctalia|qml|qt|wayland|niri" || true
+fi
+
+} > "$LOGFILE"
+
+}
+
+restart_qs() {
+
+echo "Restarting QuickShell..."
+
+pkill qs 2>/dev/null || true
+
+while pgrep qs >/dev/null; do
+    sleep 0.2
+done
+
+sleep 1
+
+nohup qs -c noctalia-shell >/dev/null 2>&1 &
+
+sleep 2
+
+}
+
+check_qs() {
+
+if pgrep qs >/dev/null; then
+    echo "✔ QuickShell restarted successfully."
+else
+    echo "✖ Failed to restart QuickShell."
+fi
+
+}
+
+compress_report() {
+
+REPORT="$LOG_DIR/report-$TIMESTAMP.tar.gz"
+
+tar -C "$LOG_DIR" -czf "$REPORT" "$(basename "$LOGFILE")"
+
+echo
+echo "Report:"
+echo "$REPORT"
+
+}
+
+show_help() {
+
+cat <<EOF
+
+Usage
+
+  fixwall
+
+      Restart QuickShell
+
+  fixwall --log
+
+      Save diagnostic logs
+
+  fixwall --report
+
+      Restart QuickShell and generate report
+
+  fixwall --clean
+
+      Remove all logs
+
+  fixwall --version
+
+      Show version
+
+EOF
+
+}
+
+require_qs
+
+case "${1:-}" in
+
+--help)
+
+print_header
+show_help
+
+;;
+
+--version)
+
+echo "FixWall v$VERSION"
+
+;;
+
+--log)
+
+print_header
+echo "Saving logs..."
+save_logs
+
+echo
+echo "Saved:"
+echo "$LOGFILE"
+
+;;
+
+--report)
+
+print_header
+
+echo "Saving diagnostics..."
+
+save_logs
+
+restart_qs
+
+check_qs
+
+compress_report
+
+;;
+
+--clean)
+
+rm -rf "$LOG_DIR"
+
+mkdir -p "$LOG_DIR"
+
+echo "Logs removed."
+
+;;
+
+*)
+
+print_header
+
+save_logs
+
+restart_qs
+
+check_qs
+
+echo
+echo "Log:"
+echo "$LOGFILE"
+
+;;
+
+esac

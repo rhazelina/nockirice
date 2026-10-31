@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# install-sddm-theme — pasang tema SDDM Noctalia ke sistem.
+# Dijalankan di terminal interaktif supaya sudo bisa minta password.
+
+set -uo pipefail
+
+THEME_SRC="${XDG_DATA_HOME:-$HOME/.local/share}/noctalia-greeter/theme"
+THEME_DST="/var/lib/noctalia-greeter/themes/noctalia"
+
+step() { printf '\n\033[1;36m==> %s\033[0m\n' "$1"; }
+ok()   { printf '\033[1;32m  ✓ %s\033[0m\n' "$1"; }
+fail() { printf '\033[1;31m  ✗ %s\033[0m\n' "$1"; }
+
+printf '\033[1mPemasangan tema SDDM Noctalia\033[0m\n'
+printf 'Kamu akan diminta password sudo satu kali.\n'
+
+step "1/4 Membuat direktori tema (butuh sudo)"
+sudo mkdir -p "$(dirname "$THEME_DST")" || { fail "gagal membuat direktori"; exit 1; }
+sudo chown "$USER:$USER" /var/lib/noctalia-greeter /var/lib/noctalia-greeter/themes || { fail "gagal chown"; exit 1; }
+ok "/var/lib/noctalia-greeter siap"
+
+step "2/4 Menyalin tema + membuat theme.conf dari palette aktif"
+"$HOME/.local/bin/sddm-theme-sync" || { fail "sinkronisasi tema gagal"; exit 1; }
+ok "tema tersalin"
+
+step "3/4 Mendaftarkan tema ke SDDM"
+sudo tee /etc/sddm.conf.d/20-theme.conf >/dev/null <<'EOF'
+[Theme]
+Current=noctalia
+ThemeDir=/var/lib/noctalia-greeter/themes
+EOF
+ok "/etc/sddm.conf.d/20-theme.conf ditulis"
+
+step "4/4 Verifikasi"
+ls -la "$THEME_DST"
+echo
+printf 'Isi theme.conf:\n'
+cat "$THEME_DST/theme.conf"
+
+echo
+printf '\033[1;33mSelesai. Tekan Enter untuk menutup jendela ini.\033[0m\n'
+printf 'Uji tampilan greeter dengan:\n'
+printf '  timeout 8 sddm-greeter --test-mode --theme %s\n\n' "$THEME_DST"
+read -r _

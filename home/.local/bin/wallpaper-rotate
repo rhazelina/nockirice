@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+wallpaper_dir="${WALLPAPER_DIR:-$HOME/Pictures/Wallpaper}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+state_file="$state_dir/wallpaper.current"
+data_dir="${XDG_DATA_HOME:-$HOME/.local/share}/wallpapers"
+lock_file="$data_dir/lock-current.jpg"
+palette_file="${XDG_CONFIG_HOME:-$HOME/.config}/noctalia/palettes/Wallpaper.json"
+mkdir -p "$state_dir" "$data_dir"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Wallpaper" "$1" "${2:-}" || true
+    fi
+}
+
+# Baca satu warna dari palette aktif. Fallback ke teal lama kalau palette belum ada.
+pal() {
+    local key="$1" fallback="$2" value=""
+    if [ -r "$palette_file" ]; then
+        value="$(jq -r --arg k "$key" '.dark[$k] // empty' "$palette_file" 2>/dev/null || true)"
+    fi
+    printf '%s\n' "${value:-$fallback}"
+}
+
+mapfile -t wallpapers < <(
+    find "$wallpaper_dir" -maxdepth 1 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        -print | sort
+)
+
+if [ "${#wallpapers[@]}" -eq 0 ]; then
+    echo "Tidak ada wallpaper di $wallpaper_dir" >&2
+    exit 1
+fi
+
+current_wallpaper() {
+    if [ -r "$state_file" ]; then
+        cat "$state_file"
+    else
+        printf '%s\n' "${wallpapers[0]}"
+    fi
+}
+
+next_wallpaper() {
+    local current="$1" i
+    for i in "${!wallpapers[@]}"; do
+        if [ "${wallpapers[$i]}" = "$current" ]; then
+            printf '%s\n' "${wallpapers[$(( (i + 1) % ${#wallpapers[@]} ))]}"
+            return 0
+        fi
+    done
+    printf '%s\n' "${wallpapers[0]}"
+}
+
+update_lock_wallpaper() {
+    local file="$1"
+
+    if command -v magick >/dev/null 2>&1; then
+        # Blurred backdrop + a frosted rounded card behind the swaylock ring.
+        # The card is baked into the image because stock swaylock has no
+        # background-panel option; the ring itself stays live and centered.
+        # Colors come from the active palette so the lock screen matches the shell.
+        local surface primary on_surface
+        surface="$(pal surface '#121411')"
+        primary="$(pal mPrimary '#b4cea1')"
+        on_surface="$(pal mOnSurface '#e3e3dd')"
+
+        if magick "$file" \
+            -resize '1920x1080^' -gravity center -extent 1920x1080 \
+            -blur 0x10 -modulate 62,95,100 \
+            \( -size 1920x1080 xc:none \
+               -fill "${primary}1A" \
+               -draw 'roundrectangle 680,350 1240,730 36,36' \
+               -blur 0x36 \) \
+            -compose over -composite \
+            \( -size 1920x1080 xc:none \
+               -fill "${surface}B8" -stroke "${primary}4D" -strokewidth 1.5 \
+               -draw 'roundrectangle 700,370 1220,710 28,28' \
+               -fill none -stroke "${on_surface}14" -strokewidth 1 \
+               -draw 'roundrectangle 702,372 1218,708 26,26' \) \
+            -compose over -composite \
+            -quality 92 "$lock_file"; then
+            return 0
+        fi
+    fi
+
+    cp -f "$file" "$lock_file" 2>/dev/null || true
+}
+
+apply_wallpaper() {
+    local file="$1"
+
+    printf '%s\n' "$file" > "$state_file"
+
+    if ! systemctl --user restart swaybg.service >/dev/null 2>&1; then
+        systemctl --user stop swaybg.service >/dev/null 2>&1 || true
+        pkill -x swaybg 2>/dev/null || true
+        if command -v setsid >/dev/null 2>&1; then
+            setsid -f /usr/bin/swaybg -i "$file" -m fill >/dev/null 2>&1 || true
+        else
+            nohup /usr/bin/swaybg -i "$file" -m fill >/dev/null 2>&1 &
+        fi
+    fi
+
+    # Satu sumber warna: palette Noctalia diturunkan dari wallpaper ini,
+    # lalu semua template (GTK, Qt, alacritty, niri, mako, fuzzel, swaylock) dirender ulang.
+    if command -v noctalia-palette >/dev/null 2>&1; then
+        noctalia-palette "$file" || true
+    fi
+
+    # Background login ikut wallpaper aktif (blur + gelap).
+    if command -v sddm-theme-wallpaper-hook >/dev/null 2>&1; then
+        sddm-theme-wallpaper-hook >/dev/null 2>&1 || true
+    fi
+
+    update_lock_wallpaper "$file"
+
+    notify "Wallpaper diganti" "$(basename "$file")"
+}
+
+case "${1:-next}" in
+    --current)
+        current_wallpaper
+        ;;
+    --lock-only)
+        lock_source="${2:-$(current_wallpaper)}"
+        if [ ! -f "$lock_source" ]; then
+            echo "File wallpaper tidak ditemukan: $lock_source" >&2
+            exit 1
+        fi
+        update_lock_wallpaper "$(realpath "$lock_source")"
+        ;;
+    --set)
+        if [ -z "${2:-}" ] || [ ! -f "${2:-}" ]; then
+            echo "Pakai: wallpaper-rotate --set /path/ke/gambar" >&2
+            exit 1
+        fi
+        apply_wallpaper "$(realpath "$2")"
+        ;;
+    --dry-run)
+        next_wallpaper "$(current_wallpaper)"
+        ;;
+    --next|next)
+        apply_wallpaper "$(next_wallpaper "$(current_wallpaper)")"
+        ;;
+    -h|--help)
+        cat <<EOF
+Pakai: wallpaper-rotate [--current|--next|next|--set PATH|--lock-only [PATH]|--dry-run]
+
+  --current        cetak wallpaper aktif
+  --next           ganti ke wallpaper berikutnya (default)
+  --set PATH       pasang wallpaper tertentu
+  --lock-only PATH regenerasi lock-current.jpg tanpa mengganti wallpaper
+  --dry-run        cetak wallpaper berikutnya tanpa mengganti
+
+Warna: setelah ganti wallpaper, palette Noctalia diturunkan dari gambar itu
+(lihat ~/.local/bin/noctalia-palette) dan semua template app dirender ulang.
+EOF
+        ;;
+    *)
+        echo "Opsi tidak dikenal: $1" >&2
+        exit 2
+        ;;
+esac

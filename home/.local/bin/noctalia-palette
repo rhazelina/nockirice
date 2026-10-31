@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# noctalia-palette — satu sumber warna untuk seluruh rice.
+#
+# Ambil warna dari wallpaper aktif, tulis sebagai palette Noctalia
+# (~/.config/noctalia/palettes/Wallpaper.json), lalu minta Noctalia
+# me-render ulang semua template (GTK, Qt, alacritty, niri, mako, fuzzel, ...).
+#
+# Pakai: noctalia-palette [IMAGE]
+#        IMAGE kosong = pakai wallpaper aktif (~/.local/state/wallpaper.current)
+
+set -euo pipefail
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+palette_dir="${XDG_CONFIG_HOME:-$HOME/.config}/noctalia/palettes"
+scheme="${NOCTALIA_SCHEME:-m3-content}"
+
+image="${1:-}"
+if [ -z "$image" ]; then
+    if [ -r "$state_dir/wallpaper.current" ]; then
+        IFS= read -r image < "$state_dir/wallpaper.current" || true
+    fi
+fi
+
+if [ -z "$image" ] || [ ! -f "$image" ]; then
+    echo "noctalia-palette: wallpaper tidak ditemukan: ${image:-<kosong>}" >&2
+    exit 1
+fi
+
+mkdir -p "$palette_dir"
+
+tmp_raw="$(mktemp /tmp/noctalia-palette.XXXXXX.json)"
+tmp_out="$(mktemp /tmp/noctalia-palette.XXXXXX.palette.json)"
+trap 'rm -f "$tmp_raw" "$tmp_out"' EXIT
+
+noctalia theme "$image" --scheme "$scheme" --both -o "$tmp_raw" 2>/dev/null
+
+python3 - "$tmp_raw" "$tmp_out" <<'PY'
+import json, sys
+
+raw = json.load(open(sys.argv[1]))
+
+def conv(r):
+    def tg(key, default):
+        flat = "terminal_" + key
+        if flat in r:
+            return r[flat]
+        head, _, tail = key.partition("_")
+        if head in ("normal", "bright"):
+            return r.get("terminal", {}).get(head, {}).get(tail, default)
+        return r.get("terminal", {}).get(key, default)
+
+    return {
+        "mPrimary": r["primary"],
+        "mOnPrimary": r["on_primary"],
+        "mSecondary": r["secondary"],
+        "mOnSecondary": r["on_secondary"],
+        "mTertiary": r["tertiary"],
+        "mOnTertiary": r["on_tertiary"],
+        "mError": r["error"],
+        "mOnError": r["on_error"],
+        "mSurface": r["surface"],
+        "mOnSurface": r["on_surface"],
+        "mSurfaceVariant": r["surface_variant"],
+        "mOnSurfaceVariant": r["on_surface_variant"],
+        "mOutline": r["outline"],
+        "mShadow": r.get("shadow", "#000000"),
+        "mHover": r.get("hover", r["tertiary"]),
+        "mOnHover": r.get("on_hover", r["on_tertiary"]),
+        "terminal": {
+            "background": tg("background", r["surface"]),
+            "foreground": tg("foreground", r["on_surface"]),
+            "cursor": tg("cursor", r["primary"]),
+            "cursorText": tg("cursor_text", r["on_primary"]),
+            "selectionBg": tg("selection_bg", r["primary"]),
+            "selectionFg": tg("selection_fg", r["on_primary"]),
+            "normal": {
+                "black": tg("normal_black", r["surface_variant"]),
+                "red": tg("normal_red", r["error"]),
+                "green": tg("normal_green", r["primary"]),
+                "yellow": tg("normal_yellow", r["tertiary"]),
+                "blue": tg("normal_blue", r["secondary"]),
+                "magenta": tg("normal_magenta", r["primary"]),
+                "cyan": tg("normal_cyan", r["secondary"]),
+                "white": tg("normal_white", r["on_surface"]),
+            },
+            "bright": {
+                "black": tg("bright_black", r["outline"]),
+                "red": tg("bright_red", r["error"]),
+                "green": tg("bright_green", r["primary"]),
+                "yellow": tg("bright_yellow", r["tertiary"]),
+                "blue": tg("bright_blue", r["secondary"]),
+                "magenta": tg("bright_magenta", r["primary"]),
+                "cyan": tg("bright_cyan", r["secondary"]),
+                "white": tg("bright_white", "#ffffff"),
+            },
+        },
+    }
+
+json.dump(
+    {"dark": conv(raw["dark"]), "light": conv(raw["light"])},
+    open(sys.argv[2], "w"),
+    indent=2,
+)
+PY
+
+install -m 0644 "$tmp_out" "$palette_dir/Wallpaper.json"
+
+# Simpan juga tema token lengkap (semua Material token, bukan cuma 16 role)
+# untuk SDDM theme.conf yang membutuhkan primary, surface_container, outline_variant, dst.
+token_state="${XDG_STATE_HOME:-$HOME/.local/state}/noctalia"
+mkdir -p "$token_state"
+install -m 0644 "$tmp_raw" "$token_state/theme-tokens.json"
+
+# Beri tahu Noctalia: pakai palette "Wallpaper", lalu render semua template.
+noctalia msg color-scheme-set custom Wallpaper >/dev/null 2>&1 || true
+noctalia msg config-reload >/dev/null 2>&1 || true
+noctalia msg templates-apply >/dev/null 2>&1 || true
+
+echo "palette: Wallpaper (dari $(basename "$image"), skema $scheme)"

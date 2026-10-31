@@ -1,0 +1,22 @@
+[theme.templates]
+enable_builtin_templates   = true
+enable_community_templates = false
+builtin_ids                = ["gtk3", "gtk4", "qt", "alacritty", "niri"]
+community_ids              = []
+
+[theme.templates.user.fuzzel]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/fuzzel-colors.ini"
+output_path = "$XDG_CONFIG_HOME/fuzzel/colors.ini"
+
+[theme.templates.user.mako]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/mako-colors"
+output_path = "$XDG_CONFIG_HOME/mako/colors"
+post_hook   = "makoctl reload"
+
+[theme.templates.user.swaylock]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/swaylock-config"
+output_path = "$XDG_CONFIG_HOME/swaylock/config"
+
+[theme.templates.user.vesktop]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/vesktop.css"
+output_path = "$XDG_CONFIG_HOME/vesktop/themes/noctalia.theme.css"

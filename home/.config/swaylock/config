@@ -1,0 +1,46 @@
+# Swaylock — digenerate oleh Noctalia dari palette wallpaper aktif.
+# Jangan diedit manual: ubah di ~/.config/noctalia/templates/swaylock-config
+# lalu jalankan `noctalia msg templates-apply`.
+
+image=/home/fichela/.local/share/wallpapers/lock-current.jpg
+scaling=fill
+color=#171211
+
+# Indicator body
+inside-color=#ece0dd10
+inside-clear-color=#ece0dd10
+inside-ver-color=#feb5a126
+inside-wrong-color=#ffb4ab26
+inside-caps-lock-color=#d7c68226
+
+# Ring
+ring-color=#feb5a1
+ring-clear-color=#feb5a1
+ring-ver-color=#feb5a1
+ring-wrong-color=#ffb4ab
+ring-caps-lock-color=#d7c682
+
+# Thin separator line
+line-color=#00000000
+line-clear-color=#00000000
+line-ver-color=#00000000
+line-wrong-color=#00000000
+line-caps-lock-color=#00000000
+separator-color=#00000000
+
+# Text
+text-color=#ece0dd
+text-clear-color=#ece0dd
+text-ver-color=#ece0dd
+text-wrong-color=#ffb4ab
+text-caps-lock-color=#d7c682
+
+# Layout
+font=Noto Sans
+font-size=15
+indicator-radius=82
+indicator-thickness=6
+indicator-idle-visible=yes
+show-failed-attempts=yes
+fade-in=0.2
+hide-keyboard-layout=no

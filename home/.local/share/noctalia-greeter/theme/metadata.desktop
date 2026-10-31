@@ -1,0 +1,16 @@
+[SddmGreeterTheme]
+Name=Noctalia
+Description=Greeter kustom yang mengikuti palet wallpaper aktif Noctalia (blur gelap, kartu login radius 26, jam & tanggal lengkap).
+Author=fichela
+Copyright=(c) 2026
+Type=sddm-theme
+License=MIT
+Version=1.0
+Website=
+Screenshot=
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=
+Theme-Id=noctalia
+Theme-API=2.0
+QtVersion=6

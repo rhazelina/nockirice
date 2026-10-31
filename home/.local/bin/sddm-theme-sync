@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# sddm-theme-sync — sinkronkan tema SDDM Noctalia dari wallpaper aktif.
+#
+# - background.jpg diganti dengan wallpaper aktif yang sudah di-blur + digelapkan
+# - theme.conf diganti warna palet Noctalia aktif (dari theme-tokens.json)
+# - tema di-deploy ke /var/lib/noctalia-greeter/themes/noctalia (dibaca sddm)
+#
+# Hanya sekali saja membutuhkan sudo: pembuatan direktori /var/lib/noctalia-greeter.
+# Setelah itu skrip ini jalan sepenuhnya sebagai user (tidak sudo).
+
+set -euo pipefail
+
+THEME_SRC="${XDG_DATA_HOME:-$HOME/.local/share}/noctalia-greeter/theme"
+THEME_DST="/var/lib/noctalia-greeter/themes/noctalia"
+TOKENS="${XDG_STATE_HOME:-$HOME/.local/state}/noctalia/theme-tokens.json"
+WALLPAPER="${XDG_STATE_HOME:-$HOME/.local/state}/wallpaper.current"
+
+DEPLOY_BG="$THEME_DST/wallpaper.jpg"
+
+mkdir -p "$THEME_DST"
+
+# ---------- 1. Background login (blur + gelap) ----------
+wallpaper=""
+if [ -r "$WALLPAPER" ]; then
+    IFS= read -r wallpaper < "$WALLPAPER" || true
+fi
+
+if [ -n "$wallpaper" ] && [ -f "$wallpaper" ]; then
+    if command -v magick >/dev/null 2>&1; then
+        magick "$wallpaper" \
+            -resize '1920x1080^' -gravity center -extent 1920x1080 \
+            -blur 0x16 -modulate 70,95,100 \
+            -quality 88 "$DEPLOY_BG" 2>/dev/null || cp -f "$wallpaper" "$DEPLOY_BG"
+    else
+        cp -f "$wallpaper" "$DEPLOY_BG"
+    fi
+else
+    cp -f "$THEME_SRC/wallpaper.jpg" "$DEPLOY_BG"
+fi
+
+# ---------- 2. theme.conf dari palet aktif (full tokens) ----------
+if [ -r "$TOKENS" ]; then
+    jq -r '
+      def p($k): .dark[$k] // "#121411";
+      "[General]\nbackground=wallpaper.jpg\ncard=\(p("surface"))\nprimary=\(p("primary"))\nprimaryHover=\(p("primary_container"))\nonPrimary=\(p("on_primary"))\nsurface=\(p("surface_container_lowest"))\nonSurface=\(p("on_surface"))\nonSurfaceVariant=\(p("on_surface_variant"))\noutline=\(p("outline"))\nerror=\(p("error"))\nfontFamily=MesloLGS Nerd Font Mono\n"
+    ' "$TOKENS" > "$THEME_DST/theme.conf"
+else
+    cp -f "$THEME_SRC/theme.conf" "$THEME_DST/theme.conf"
+fi
+
+# ---------- 3. metadata & Main.qml ----------
+cp -f "$THEME_SRC/metadata.desktop" "$THEME_DST/metadata.desktop"
+cp -f "$THEME_SRC/Main.qml" "$THEME_DST/Main.qml"
+
+chmod -R a+rX "$THEME_DST"
+echo "SDDM theme sinkron ke $THEME_DST"

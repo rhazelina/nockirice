@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Picker riwayat clipboard: cliphist + fuzzel.
+# Batalkan dengan Esc = clipboard tidak berubah.
+set -euo pipefail
+
+selection="$(cliphist list | fuzzel --dmenu --prompt "Clipboard: " --width 72)" || exit 0
+[ -n "${selection}" ] || exit 0
+
+printf '%s\n' "${selection}" | cliphist decode | wl-copy

@@ -1,0 +1,32 @@
+# Paket minimal untuk rice niri + Noctalia (CachyOS / Arch).
+# Semua dari repo resmi. Paket AUR ada di aur.txt.
+
+# compositor + shell
+niri
+noctalia
+
+# terminal + launcher + notifikasi + lock
+alacritty
+fuzzel
+mako
+swaylock
+swaybg
+
+# screenshot + clipboard
+grim
+slurp
+cliphist
+
+# display manager
+sddm
+
+# theming engine
+matugen
+
+# font
+ttf-meslo-nerd
+
+# util yang dipakai skrip rice
+jq
+imagemagick
+fish
