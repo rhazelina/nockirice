@@ -13,6 +13,15 @@ ikut berubah warna.
 
 ## Tampilan
 
+### Desktop widgets — dashboard Noctalia
+
+Widget desktop (jam, cuaca, kalender, pemutar musik, tasks, system monitor, baterai,
+volume) memakai palet, radius, dan font yang sama dengan bar. Tampil di workspace kosong.
+
+<p align="center">
+  <img src="docs/screenshots/widgets.webp" alt="Desktop widgets Noctalia" width="880">
+</p>
+
 ### Terminal — palet ikut wallpaper
 
 Alacritty dengan MesloLGS Nerd Font Mono, opacity ditangani niri (bukan terminal),
