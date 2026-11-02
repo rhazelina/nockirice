@@ -14,7 +14,8 @@ Semua yang dilakukan agar mesin baru bisa direplikasi persis.
 - `~/.config/niri/noctalia.kdl` — warna dari palet (di-include dari `config.kdl`).
 - `cfg/rules.kdl` — window rule radius/opacity.
 - `cfg/layout.kdl` — layout + shadow.
-- `cfg/keybinds.kdl` — `Mod+Shift+M` (mem-mode hemat), `Mod+Ctrl+M` (status).
+- `cfg/keybinds.kdl` — `Mod+Shift+M` (mem-mode hemat), `Mod+Ctrl+M` (status),
+  `Mod+Shift+D` (toggle desktop widgets), `Mod+Alt+D` (edit layout desktop widgets).
 
 ## Noctalia
 - `config.toml` — bar radius 16, opacity 0.55, tray widget (drawer), capsule fill surface_variant.

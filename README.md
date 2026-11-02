@@ -159,6 +159,8 @@ timeout 8 sddm-greeter --test-mode --theme /var/lib/noctalia-greeter/themes/noct
 | `Mod+Space` | launcher (fuzzel) |
 | `Mod+Shift+M` | mode hemat memori |
 | `Mod+Ctrl+M` | status memori |
+| `Mod+Shift+D` | toggle desktop widgets |
+| `Mod+Alt+D` | edit layout desktop widgets |
 | `Mod+Shift+L` | lock screen |
 
 ---
